@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 # params = lambda: None
 # params.p_common = 0.8
 # params.sigma_v = 0.6
@@ -32,8 +33,9 @@ def prior_C_equals_2(x_v, x_a, params):
 
 
 def posterior_C_equals_1(x_v, x_a, params):
-    return prior_C_equals_1(x_v, x_a, params) * params.p_common / \
-           (prior_C_equals_1(x_v, x_a, params) * params.p_common
+    prior_C_equals_1_val = prior_C_equals_1(x_v, x_a, params)
+    return prior_C_equals_1_val * params.p_common / \
+           (prior_C_equals_1_val * params.p_common
             + prior_C_equals_2(x_v, x_a, params) * (1 - params.p_common))
 
 
@@ -60,3 +62,15 @@ def estimated_s_v(x_v, x_a, params):
 def estimated_s_a(x_v, x_a, params):
     return posterior_C_equals_1(x_v, x_a, params) * estimated_s_when_C_equals_1(x_a, x_v, params) + \
            (1 - posterior_C_equals_1(x_v, x_a, params)) * estimated_s_a_when_C_equals_2(x_a, params)
+
+
+def estimated_s_efficient(x_v, x_a, params):
+    posterior_C_equals_1_val = posterior_C_equals_1(x_v, x_a, params)
+    estimated_s_when_C_equals_1_val = estimated_s_when_C_equals_1(x_a, x_v, params)
+    nominator = posterior_C_equals_1_val * estimated_s_when_C_equals_1_val
+
+    estimated_s_a_val = nominator + \
+                        (1 - posterior_C_equals_1_val) * estimated_s_a_when_C_equals_2(x_a, params)
+    estimated_s_v_val = nominator + \
+                        (1 - posterior_C_equals_1_val) * estimated_s_v_when_C_equals_2(x_v, params)
+    return estimated_s_v_val, estimated_s_a_val
