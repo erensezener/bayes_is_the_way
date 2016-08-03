@@ -185,7 +185,12 @@ def calculate_log_likelihood_wrapper(param_arr):
     params.sigma_a = param_arr[2]
     params.sigma_p = param_arr[3]
     params.mu_p = 0
-    return calculate_log_likelihood(s_vs_discrete, s_as_discrete, estimated_s_vs_index, estimated_s_as_index, params)
+    t = calculate_log_likelihood(s_vs_discrete, s_as_discrete, estimated_s_vs_index, estimated_s_as_index, params)
+    if np.isnan(t):
+        return -np.Inf
+    else:
+        return t
+
 
 def mcmc():
     ndim = 4
@@ -194,13 +199,16 @@ def mcmc():
     start = np.random.uniform(0.001,20,(nwalkers,ndim))
     start[:,0] = np.random.uniform(0,1,(nwalkers))
     sampler = emcee.EnsembleSampler(nwalkers, ndim, calculate_log_likelihood_wrapper)
-    pos, prob, state = sampler.run_mcmc(start, 10)
+    pos, prob, state = sampler.run_mcmc(start, 2)
     sampler.reset()
-    sampler.run_mcmc(pos, 100)
+    sampler.run_mcmc(pos, 50)
     for i in range(ndim):
         plt.figure()
-        plt.hist(sampler.flatchain[:,i], 100, color="k", histtype="step")
+        plt.hist(sampler.flatchain[:,i], 500, color="k", histtype="step")
         plt.title("Dimension {0:d}".format(i))
     plt.show()
+    sampler.flatchain.dump('mcmc.dump')
+
+mcmc()
 
 mcmc()
